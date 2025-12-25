@@ -16,7 +16,7 @@ namespace PKHeX.WinForms;
 public partial class ReportGrid : Form
 {
     public IPropertyProvider PropertyProvider { get; init; } = DefaultPropertyProvider.Instance;
-    private sealed class PokemonList<T> : SortableBindingList<T> where T : class;
+    protected sealed class PokemonList<T> : SortableBindingList<T> where T : class;
 
     public ReportGrid()
     {
@@ -54,9 +54,9 @@ public partial class ReportGrid : Form
         dgData.ContextMenuStrip = mnu;
     }
 
-    public void PopulateData(IReadOnlyList<SlotCache> data) => PopulateData(data, [], []);
+    public virtual void PopulateData(IReadOnlyList<SlotCache> data) => PopulateData(data, [], []);
 
-    public void PopulateData(IReadOnlyList<SlotCache> data, ReadOnlySpan<string> extra, ReadOnlySpan<string> hide)
+    public virtual void PopulateData(IReadOnlyList<SlotCache> data, ReadOnlySpan<string> extra, ReadOnlySpan<string> hide)
     {
         SuspendLayout();
         var PL = new PokemonList<EntitySummaryImage>();
@@ -83,8 +83,11 @@ public partial class ReportGrid : Form
         for (int i = 0; i < dgData.Columns.Count; i++)
         {
             var col = dgData.Columns[i];
-            if (col is DataGridViewImageColumn)
+            if (col is DataGridViewImageColumn imgCol)
+            {
+                imgCol.ImageLayout = DataGridViewImageCellLayout.Zoom;
                 continue; // Don't add sorting for Sprites
+            }
             col.SortMode = DataGridViewColumnSortMode.Automatic;
         }
 
@@ -151,11 +154,23 @@ public partial class ReportGrid : Form
         return false;
     }
 
-    private void Data_Sorted(object sender, EventArgs e)
+    protected virtual void Data_Sorted(object sender, EventArgs e)
     {
-        int height = SpriteUtil.Spriter.Height + 1; // max height of a row, +1px
+        int height = Math.Max(72, SpriteUtil.Spriter.Height + 10);
         for (int i = 0; i < dgData.Rows.Count; i++)
             dgData.Rows[i].Height = height;
+
+        foreach (DataGridViewColumn col in dgData.Columns)
+        {
+            if (col is DataGridViewImageColumn imgCol)
+                imgCol.Width = Math.Max(imgCol.Width, SpriteUtil.Spriter.Width + 10);
+        }
+
+        foreach (DataGridViewColumn col in dgData.Columns)
+        {
+            if (col is DataGridViewImageColumn imgCol)
+                imgCol.Width = Math.Max(imgCol.Width, SpriteUtil.Spriter.Width + 10);
+        }
     }
 
     private void PromptSaveCSV(object sender, FormClosingEventArgs e)

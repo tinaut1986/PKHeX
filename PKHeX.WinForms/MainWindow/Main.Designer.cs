@@ -57,6 +57,7 @@ namespace PKHeX.WinForms
             CB_MainLanguage = new System.Windows.Forms.ToolStripComboBox();
             Menu_Undo = new System.Windows.Forms.ToolStripMenuItem();
             Menu_Redo = new System.Windows.Forms.ToolStripMenuItem();
+            Menu_LivingDex = new System.Windows.Forms.ToolStripMenuItem();
             Menu_Settings = new System.Windows.Forms.ToolStripMenuItem();
             Menu_About = new System.Windows.Forms.ToolStripMenuItem();
             L_UpdateAvailable = new System.Windows.Forms.LinkLabel();
@@ -193,7 +194,7 @@ namespace PKHeX.WinForms
             // 
             // Menu_Data
             // 
-            Menu_Data.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { Menu_LoadBoxes, Menu_DumpBoxes, Menu_DumpBox, Menu_Report, Menu_Database, Menu_MGDatabase, Menu_EncDatabase, Menu_BatchEditor });
+            Menu_Data.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { Menu_LoadBoxes, Menu_DumpBoxes, Menu_DumpBox, Menu_Report, Menu_Database, Menu_MGDatabase, Menu_EncDatabase, Menu_BatchEditor, Menu_LivingDex });
             Menu_Data.Image = Properties.Resources.data;
             Menu_Data.Name = "Menu_Data";
             Menu_Data.Size = new System.Drawing.Size(133, 22);
@@ -282,6 +283,14 @@ namespace PKHeX.WinForms
             Menu_Folder.Size = new System.Drawing.Size(133, 22);
             Menu_Folder.Text = "Open Folder";
             Menu_Folder.Click += MainMenuFolder;
+            // 
+            // Menu_LivingDex
+            // 
+            Menu_LivingDex.Image = Properties.Resources.database;
+            Menu_LivingDex.Name = "Menu_LivingDex";
+            Menu_LivingDex.Size = new System.Drawing.Size(182, 22);
+            Menu_LivingDex.Text = "LivingDex";
+            Menu_LivingDex.Click += MainMenuLivingDex;
             // 
             // Menu_Options
             // 
@@ -541,6 +550,7 @@ namespace PKHeX.WinForms
         private System.Windows.Forms.ToolStripMenuItem Menu_Settings;
         private System.Windows.Forms.ToolStripMenuItem Menu_ShowdownExportCurrentBox;
         private System.Windows.Forms.ToolStripMenuItem Menu_EncDatabase;
+        private System.Windows.Forms.ToolStripMenuItem Menu_LivingDex;
         private System.Windows.Forms.ToolTip toolTip;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.SplitContainer splitContainer2;
