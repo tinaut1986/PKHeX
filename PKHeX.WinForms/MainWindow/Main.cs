@@ -445,6 +445,12 @@ public partial class Main : Form
         form.Show();
     }
 
+    private void MainMenuLivingDex(object sender, EventArgs e)
+    {
+        var form = new SAV_LivingDex(PKME_Tabs, C_SAV.SAV);
+        form.Show();
+    }
+
     // Misc Options
     private void ClickShowdownImportPKM(object? sender, EventArgs e)
     {
@@ -807,6 +813,7 @@ public partial class Main : Form
 
         // Initialize Overall Info
         Menu_LoadBoxes.Enabled = Menu_DumpBoxes.Enabled = Menu_DumpBox.Enabled = Menu_Report.Enabled = C_SAV.SAV.HasBox;
+        Menu_LivingDex.Enabled = true;
 
         // Initialize Subviews
         bool WindowTranslationRequired = false;

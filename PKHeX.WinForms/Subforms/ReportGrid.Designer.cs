@@ -41,6 +41,7 @@ namespace PKHeX.WinForms
             dgData.Location = new System.Drawing.Point(0, 0);
             dgData.Name = "dgData";
             dgData.RowHeadersVisible = false;
+            dgData.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             dgData.Size = new System.Drawing.Size(812, 461);
             dgData.TabIndex = 0;
             dgData.Sorted += new System.EventHandler(Data_Sorted);
@@ -62,6 +63,6 @@ namespace PKHeX.WinForms
 
         #endregion
 
-        private PKHeX.WinForms.Controls.DoubleBufferedDataGridView dgData;
+        internal PKHeX.WinForms.Controls.DoubleBufferedDataGridView dgData;
     }
 }
