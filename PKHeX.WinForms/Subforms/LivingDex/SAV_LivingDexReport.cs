@@ -20,6 +20,7 @@ namespace PKHeX.WinForms
         private readonly Label L_Nature;
         private readonly Label L_Ability;
         private readonly Label L_Item;
+        private readonly Label L_Game;
         private readonly StatRadarChart Chart;
 
         public SAV_LivingDexReport()
@@ -74,13 +75,13 @@ namespace PKHeX.WinForms
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 2,
-                RowCount = 6,
+                RowCount = 7,
                 TabIndex = 1
             };
             TLP_Info.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70F));
             TLP_Info.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            for (int i = 0; i < 6; i++)
-                TLP_Info.RowStyles.Add(new RowStyle(SizeType.Absolute, 25F));
+            for (int i = 0; i < 7; i++)
+                TLP_Info.RowStyles.Add(new RowStyle(SizeType.Absolute, 22F));
 
             L_Nickname = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0) };
             L_Species = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0) };
@@ -88,6 +89,7 @@ namespace PKHeX.WinForms
             L_Nature = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0) };
             L_Ability = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0) };
             L_Item = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0) };
+            L_Game = new Label { AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft, Margin = new Padding(0) };
 
             TLP_Info.Controls.Add(new Label { Text = "Nick:", AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight }, 0, 0);
             TLP_Info.Controls.Add(L_Nickname, 1, 0);
@@ -101,6 +103,8 @@ namespace PKHeX.WinForms
             TLP_Info.Controls.Add(L_Ability, 1, 4);
             TLP_Info.Controls.Add(new Label { Text = "Item:", AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight }, 0, 5);
             TLP_Info.Controls.Add(L_Item, 1, 5);
+            TLP_Info.Controls.Add(new Label { Text = "Game:", AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleRight }, 0, 6);
+            TLP_Info.Controls.Add(L_Game, 1, 6);
 
             P_Header.Controls.Add(TLP_Info);
             P_Header.Controls.Add(PB_Sprite);
@@ -150,7 +154,7 @@ namespace PKHeX.WinForms
             if (pk == null)
             {
                 PB_Sprite.Image = null;
-                L_Nickname.Text = L_Species.Text = L_Level.Text = L_Nature.Text = L_Ability.Text = L_Item.Text = string.Empty;
+                L_Nickname.Text = L_Species.Text = L_Level.Text = L_Nature.Text = L_Ability.Text = L_Item.Text = L_Game.Text = string.Empty;
                 return;
             }
 
@@ -165,6 +169,7 @@ namespace PKHeX.WinForms
 
             var items = strings.GetItemStrings(pk.Context);
             L_Item.Text = pk.HeldItem < items.Length ? items[pk.HeldItem] : "None";
+            L_Game.Text = GameInfo.GetVersionName(pk.Version);
         }
     }
 }
