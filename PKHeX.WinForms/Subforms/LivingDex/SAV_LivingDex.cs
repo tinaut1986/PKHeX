@@ -19,8 +19,10 @@ namespace PKHeX.WinForms
         private readonly PKMEditor PKME;
         private readonly Dictionary<ushort, List<SlotCache>> SpeciesFound = new();
         private readonly Dictionary<(ushort, bool), Image> SpriteCache = new();
+        private HashSet<GameVersion> SelectedGames = new();
         private string CurrentPath = string.Empty;
         private bool IsPopulating = false;
+        private bool LoadingFilters = true;
 
         public SAV_LivingDex(PKMEditor pkme, SaveFile sav)
         {
@@ -41,6 +43,49 @@ namespace PKHeX.WinForms
 
             WinFormsUtil.TranslateInterface(this, Main.CurrentLanguage);
             Load += async (_, _) => await PopulatePokedex();
+
+            InitializeFilters();
+        }
+
+        private void InitializeFilters()
+        {
+            var games = GameInfo.Strings.gamelist;
+            SelectedGames.Clear();
+            for (int i = 0; i < games.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(games[i]) || games[i] == "---") continue;
+                SelectedGames.Add((GameVersion)i);
+            }
+            UpdateSelectedGamesLabel();
+            CB_LevelOp.SelectedIndex = 0;
+            NUD_Level.Value = 100;
+            LoadingFilters = false;
+        }
+
+        private void UpdateSelectedGamesLabel()
+        {
+            var total = GameInfo.Strings.gamelist.Count(z => !string.IsNullOrWhiteSpace(z) && z != "---");
+            if (SelectedGames.Count == total)
+                L_SelectedGamesCount.Text = "All selected";
+            else if (SelectedGames.Count == 0)
+                L_SelectedGamesCount.Text = "None selected";
+            else
+                L_SelectedGamesCount.Text = $"{SelectedGames.Count} selected";
+        }
+
+        private void B_SelectGames_Click(object? sender, EventArgs e)
+        {
+            using var filter = new SAV_LivingDexGameFilter(new HashSet<GameVersion>(SelectedGames));
+            if (filter.ShowDialog() == DialogResult.OK)
+            {
+                SelectedGames = filter.SelectedGames;
+                UpdateSelectedGamesLabel();
+            }
+        }
+
+        private async void B_ApplyFilter_Click(object? sender, EventArgs e)
+        {
+            await PopulatePokedex();
         }
 
         private async void B_SelectFolder_Click(object sender, EventArgs e)
@@ -88,6 +133,8 @@ namespace PKHeX.WinForms
             if (IsPopulating) return;
             IsPopulating = true;
 
+            var filteredFound = GetFilteredResults();
+
             FLP_Pokedex.SuspendLayout();
             FLP_Pokedex.Controls.Clear();
             
@@ -100,7 +147,7 @@ namespace PKHeX.WinForms
             for (int i = 1; i <= maxSpecies; i++)
             {
                 var species = (ushort)i;
-                bool owned = SpeciesFound.ContainsKey(species);
+                bool owned = filteredFound.ContainsKey(species);
                 
                 var pb = new PictureBox
                 {
@@ -115,7 +162,8 @@ namespace PKHeX.WinForms
                 if (owned)
                 {
                     pb.Click += Species_Click;
-                    toolTip.SetToolTip(pb, $"{((Species)species).ToString()} ({SpeciesFound[species].Count})");
+                    pb.Tag = filteredFound[species]; // Store the filtered list of SlotCache for the report
+                    toolTip.SetToolTip(pb, $"{((Species)species).ToString()} ({filteredFound[species].Count})");
                 }
                 else
                 {
@@ -133,9 +181,38 @@ namespace PKHeX.WinForms
             }
 
             PB_Progress.Visible = false;
-            L_Status.Text = $"Scan complete. {SpeciesFound.Count} species found.";
+            L_Status.Text = $"Scan complete. {filteredFound.Count} species found matching filters.";
             FLP_Pokedex.ResumeLayout();
             IsPopulating = false;
+        }
+
+        private Dictionary<ushort, List<SlotCache>> GetFilteredResults()
+        {
+            var filtered = new Dictionary<ushort, List<SlotCache>>();
+            var op = CB_LevelOp.Text;
+            var level = (int)NUD_Level.Value;
+
+            foreach (var kvp in SpeciesFound)
+            {
+                var list = kvp.Value.Where(sc => 
+                {
+                    var pk = sc.Entity;
+                    if (!SelectedGames.Contains(pk.Version)) return false;
+
+                    if (op == "Any") return true;
+                    if (op == "=" && pk.CurrentLevel != level) return false;
+                    if (op == ">" && pk.CurrentLevel <= level) return false;
+                    if (op == "<" && pk.CurrentLevel >= level) return false;
+                    if (op == ">=" && pk.CurrentLevel < level) return false;
+                    if (op == "<=" && pk.CurrentLevel > level) return false;
+
+                    return true;
+                }).ToList();
+
+                if (list.Count > 0)
+                    filtered[kvp.Key] = list;
+            }
+            return filtered;
         }
 
         private Image GetCachedSprite(ushort species, bool owned)
@@ -156,15 +233,13 @@ namespace PKHeX.WinForms
         private void Species_Click(object sender, EventArgs e)
         {
             var pb = (PictureBox)sender;
-            var species = (ushort)pb.Tag;
+            var results = (List<SlotCache>)pb.Tag;
+            var species = (ushort)results[0].Entity.Species;
 
-            if (SpeciesFound.TryGetValue(species, out var results))
-            {
-                var report = new SAV_LivingDexReport();
-                report.Text = $"{((Species)species).ToString()} - {CurrentPath}";
-                report.PopulateData(results);
-                report.Show();
-            }
+            var report = new SAV_LivingDexReport();
+            report.Text = $"{((Species)species).ToString()} - {CurrentPath}";
+            report.PopulateData(results);
+            report.Show();
         }
     }
 }
