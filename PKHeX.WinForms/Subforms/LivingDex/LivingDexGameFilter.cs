@@ -6,13 +6,13 @@ using PKHeX.Core;
 
 namespace PKHeX.WinForms
 {
-    public partial class SAV_LivingDexGameFilter : Form
+    public partial class LivingDexGameFilter : Form
     {
         private readonly CheckedListBox CLB_Games;
 
         public HashSet<GameVersion> SelectedGames { get; private set; }
 
-        public SAV_LivingDexGameFilter(HashSet<GameVersion> currentSelection)
+        public LivingDexGameFilter(HashSet<GameVersion> currentSelection)
         {
             InitializeComponent();
             Icon = Properties.Resources.Icon;
@@ -79,7 +79,7 @@ namespace PKHeX.WinForms
         {
             this.SuspendLayout();
             this.ClientSize = new System.Drawing.Size(634, 411);
-            this.Name = "SAV_LivingDexGameFilter";
+            this.Name = "LivingDexGameFilter";
             this.ResumeLayout(false);
         }
     }

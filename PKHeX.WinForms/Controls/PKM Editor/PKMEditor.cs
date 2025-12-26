@@ -78,6 +78,7 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         TB_EXP.MouseWheel += WinFormsUtil.MouseWheelIncrement1;
         TB_Level.MouseWheel += WinFormsUtil.MouseWheelIncrement1;
         TB_Friendship.MouseWheel += WinFormsUtil.MouseWheelIncrement1;
+        InitializeRadarChart();
     }
 
     private void ClickManualAbility(object sender, EventArgs e)
@@ -137,6 +138,49 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         if (Entity is IScaledSizeAbsolute)
             SizeCP.TryResetStats();
         StatusView.LoadPKM(Entity);
+        UpdateChart();
+    }
+
+    private void InitializeRadarChart()
+    {
+        B_ShowChart = new Button
+        {
+            Text = "⬢",
+            Size = new Size(24, 24),
+            Location = new Point(100, 12),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = Color.Transparent,
+            Cursor = Cursors.Hand,
+        };
+        toolTip.SetToolTip(B_ShowChart, "Toggle Stat Hexagon Window");
+        B_ShowChart.Click += (_, _) => 
+        {
+            if (HexagonWindow == null || HexagonWindow.IsDisposed)
+                HexagonWindow = new StatHexagon();
+
+            if (HexagonWindow.Visible)
+            {
+                HexagonWindow.Hide();
+            }
+            else
+            {
+                HexagonWindow.Show();
+                UpdateChart();
+                var parent = FindForm();
+                if (parent != null)
+                    HexagonWindow.Location = new Point(parent.Right, parent.Top);
+            }
+        };
+        Controls.Add(B_ShowChart);
+        B_ShowChart.BringToFront();
+    }
+
+    internal void UpdateChart()
+    {
+        if (HexagonWindow != null && HexagonWindow.Visible)
+        {
+            HexagonWindow.UpdatePKM(Entity);
+        }
     }
 
     private void LoadPartyStats(PKM pk) => Stats.LoadPartyStats(pk);
@@ -216,6 +260,9 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
     private readonly ComboBox[] Relearn;
     private readonly ValidationRequiredSet[] ValidatedControls;
     private readonly PictureBox[] Markings;
+    private readonly ToolTip toolTip = new();
+    private StatHexagon? HexagonWindow;
+    private Button? B_ShowChart;
 
     private bool forceValidation;
 
@@ -349,6 +396,7 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         SetMarkings();
         UpdateLegality();
         UpdateSprite();
+        UpdateChart();
         LastData = PreparePKM().Data.ToArray();
         RefreshFontWarningButton();
     }

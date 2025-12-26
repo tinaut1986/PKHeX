@@ -425,7 +425,7 @@ public partial class Main : Form
 
     private void MainMenuLivingDex(object sender, EventArgs e)
     {
-        var form = new SAV_LivingDex(PKME_Tabs, C_SAV.SAV);
+        var form = new LivingDex(PKME_Tabs, C_SAV.SAV);
         form.Show();
     }
 

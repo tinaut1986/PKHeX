@@ -13,7 +13,7 @@ using PKHeX.WinForms.Controls;
 
 namespace PKHeX.WinForms
 {
-    public partial class SAV_LivingDex : Form
+    public partial class LivingDex : Form
     {
         private readonly SaveFile SAV;
         private readonly PKMEditor PKME;
@@ -24,7 +24,7 @@ namespace PKHeX.WinForms
         private bool IsPopulating = false;
         private bool LoadingFilters = true;
 
-        public SAV_LivingDex(PKMEditor pkme, SaveFile sav)
+        public LivingDex(PKMEditor pkme, SaveFile sav)
         {
             InitializeComponent();
             Icon = Properties.Resources.Icon;
@@ -75,7 +75,7 @@ namespace PKHeX.WinForms
 
         private void B_SelectGames_Click(object? sender, EventArgs e)
         {
-            using var filter = new SAV_LivingDexGameFilter(new HashSet<GameVersion>(SelectedGames));
+            using var filter = new LivingDexGameFilter(new HashSet<GameVersion>(SelectedGames));
             if (filter.ShowDialog() == DialogResult.OK)
             {
                 SelectedGames = filter.SelectedGames;
@@ -114,7 +114,7 @@ namespace PKHeX.WinForms
                 foreach (var file in files)
                 {
                     var data = File.ReadAllBytes(file);
-                    var pk = EntityFormat.GetFromBytes(data, SAV.Context);
+                    var pk = EntityFormat.GetFromBytes(data, EntityContext.None); // Auto-detect format
                     if (pk == null) continue;
 
                     var species = (ushort)pk.Species;
@@ -236,7 +236,7 @@ namespace PKHeX.WinForms
             var results = (List<SlotCache>)pb.Tag;
             var species = (ushort)results[0].Entity.Species;
 
-            var report = new SAV_LivingDexReport(PKME);
+            var report = new LivingDexReport(PKME);
             report.Text = $"{((Species)species).ToString()} - {CurrentPath}";
             report.PopulateData(results);
             report.Show();

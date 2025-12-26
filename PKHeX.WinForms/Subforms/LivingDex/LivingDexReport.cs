@@ -9,7 +9,7 @@ using PKHeX.Drawing.PokeSprite;
 
 namespace PKHeX.WinForms
 {
-    public partial class SAV_LivingDexReport : ReportGrid
+    public partial class LivingDexReport : ReportGrid
     {
         private readonly PKMEditor PKME;
         private readonly SplitContainer SC_Main;
@@ -24,7 +24,7 @@ namespace PKHeX.WinForms
         private readonly Label L_Game;
         private readonly StatRadarChart Chart;
 
-        public SAV_LivingDexReport(PKMEditor pkme)
+        public LivingDexReport(PKMEditor pkme)
         {
             InitializeComponent();
             PKME = pkme;
@@ -153,8 +153,22 @@ namespace PKHeX.WinForms
             var row = dgData.Rows[e.RowIndex];
             if (row.DataBoundItem is EntitySummaryImage summary)
             {
-                PKME.PopulateFields(summary.Entity);
-                WinFormsUtil.Alert("Pokémon loaded into the main editor.");
+                var pk = summary.Entity;
+                
+                // Create a temporary blank save file matching the Pokemon's generation
+                // to correctly initialize the editor's dropdowns and logic for that game.
+                var tempSAV = BlankSaveFile.Get(pk.Context);
+                
+                // Update global data sources to avoid filtering out species/items not in the current save's game.
+                var oldHaX = Main.HaX;
+                GameInfo.FilteredSources = new FilteredGameDataSource(tempSAV, GameInfo.Sources, true);
+                
+                // Fully re-initialize the editor interface for this specific Pokemon and generation.
+                PKME.SetPKMFormatMode(pk);
+                PKME.ToggleInterface(tempSAV, pk);
+                
+                var msg = $"Pokémon loaded into the editor.\nFormat: {pk.Context}\n\nNote: The editor is now in {pk.Context} mode. Your current save file is safe; this Pokémon is only in the editor tabs.";
+                WinFormsUtil.Alert(msg);
             }
         }
 

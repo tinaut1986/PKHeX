@@ -411,6 +411,7 @@ public partial class StatEditor : UserControl
             PB_TeraType1.SetType(pi.Type1, false); // Personal Info are just regular move types.
             PB_TeraType2.SetType(pi.Type2, false); // Personal Info are just regular move types.
         }
+        MainEditor.UpdateChart();
     }
 
     private void LoadBST(IBaseStat pi)
