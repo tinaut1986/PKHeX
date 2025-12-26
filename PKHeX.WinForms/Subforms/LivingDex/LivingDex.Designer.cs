@@ -1,6 +1,6 @@
 namespace PKHeX.WinForms
 {
-    partial class SAV_LivingDex
+    partial class LivingDex
     {
         private System.ComponentModel.IContainer components = null;
 
@@ -179,7 +179,7 @@ namespace PKHeX.WinForms
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.FLP_Pokedex);
             this.Controls.Add(this.P_Toolbox);
-            this.Name = "SAV_LivingDex";
+            this.Name = "LivingDex";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "LivingDex";
             this.P_Toolbox.ResumeLayout(false);

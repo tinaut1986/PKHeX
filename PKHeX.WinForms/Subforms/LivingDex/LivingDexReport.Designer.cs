@@ -1,6 +1,6 @@
 namespace PKHeX.WinForms
 {
-    partial class SAV_LivingDexReport
+    partial class LivingDexReport
     {
         private System.ComponentModel.IContainer components = null;
 
