@@ -11,6 +11,7 @@ namespace PKHeX.WinForms
 {
     public partial class SAV_LivingDexReport : ReportGrid
     {
+        private readonly PKMEditor PKME;
         private readonly SplitContainer SC_Main;
         private readonly Panel P_Side;
         private readonly PictureBox PB_Sprite;
@@ -23,9 +24,10 @@ namespace PKHeX.WinForms
         private readonly Label L_Game;
         private readonly StatRadarChart Chart;
 
-        public SAV_LivingDexReport()
+        public SAV_LivingDexReport(PKMEditor pkme)
         {
             InitializeComponent();
+            PKME = pkme;
             Icon = Properties.Resources.Icon;
             BackColor = Color.White;
             Width = 1100;
@@ -45,6 +47,7 @@ namespace PKHeX.WinForms
             SC_Main.Panel1.Controls.Add(dgData);
             dgData.Dock = DockStyle.Fill;
             dgData.SelectionChanged += Data_SelectionChanged;
+            dgData.CellDoubleClick += Data_CellDoubleClick;
 
             // Side Panel Container
             P_Side = new Panel
@@ -142,9 +145,16 @@ namespace PKHeX.WinForms
             {
                 UpdateSidePanel(summary.Entity);
             }
-            else
+        }
+
+        private void Data_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            var row = dgData.Rows[e.RowIndex];
+            if (row.DataBoundItem is EntitySummaryImage summary)
             {
-                UpdateSidePanel(null);
+                PKME.PopulateFields(summary.Entity);
+                WinFormsUtil.Alert("Pokémon loaded into the main editor.");
             }
         }
 
