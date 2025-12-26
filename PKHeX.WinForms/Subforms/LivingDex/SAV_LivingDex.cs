@@ -236,7 +236,7 @@ namespace PKHeX.WinForms
             var results = (List<SlotCache>)pb.Tag;
             var species = (ushort)results[0].Entity.Species;
 
-            var report = new SAV_LivingDexReport();
+            var report = new SAV_LivingDexReport(PKME);
             report.Text = $"{((Species)species).ToString()} - {CurrentPath}";
             report.PopulateData(results);
             report.Show();
