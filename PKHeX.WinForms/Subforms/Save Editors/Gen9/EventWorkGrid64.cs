@@ -188,7 +188,6 @@ public sealed record EventWorkGrid64<T> : EventWorkGridBase where T : struct, IE
             RowHeadersVisible = false,
             Margin = new Padding(0),
             DefaultCellStyle = new DataGridViewCellStyle { Font = font },
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = SystemColors.ControlLight },
         };
         dgv.Columns.AddRange(MakeIndexColumn(font), MakeValueBoolColumn(font, "Value"), MakeKeyColumn(font));
         container.Panel2.Controls.Add(dgv);
@@ -214,7 +213,6 @@ public sealed record EventWorkGrid64<T> : EventWorkGridBase where T : struct, IE
             RowHeadersVisible = false,
             Margin = new Padding(0),
             DefaultCellStyle = new DataGridViewCellStyle { Font = font },
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = SystemColors.ControlLight },
         };
         dgv.Columns.AddRange(MakeIndexColumn(font), MakeValueNumberColumn(font, "Value"), MakeKeyColumn(font));
         container.Panel2.Controls.Add(dgv);
@@ -342,7 +340,6 @@ public sealed record EventWorkGridTuple : EventWorkGridBase
             RowHeadersVisible = false,
             Margin = new Padding(0),
             DefaultCellStyle = new DataGridViewCellStyle { Font = font },
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = SystemColors.ControlLight },
         };
         var c1 = MakeIndexColumn(font);
         var c2 = MakeKeyColumn(font, "Key A");
@@ -370,7 +367,9 @@ public sealed record EventWorkGridTuple : EventWorkGridBase
             var row = Grid.Rows[e.RowIndex];
             var cell = row.Cells[e.ColumnIndex];
             var text = cell.Value?.ToString() ?? string.Empty;
-            if (long.TryParse(text, CultureInfo.InvariantCulture, out _))
+            if (e.ColumnIndex is ColumnValue1 && long.TryParse(text, CultureInfo.InvariantCulture, out _))
+                return;
+            if (e.ColumnIndex is ColumnValue2 && ulong.TryParse(text, CultureInfo.InvariantCulture, out _))
                 return;
             WinFormsUtil.Alert("Please enter a valid value.");
             var i = Convert.ToInt32(row.Cells[ColumnIndex].Value);
@@ -494,7 +493,6 @@ public sealed record EventWorkGrid128 : EventWorkGridBase
             RowHeadersVisible = false,
             Margin = new Padding(0),
             DefaultCellStyle = new DataGridViewCellStyle { Font = font },
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = SystemColors.ControlLight },
         };
 
         var c1 = MakeIndexColumn(font);
@@ -644,7 +642,6 @@ public sealed record EventWorkGrid192 : EventWorkGridBase
             RowHeadersVisible = false,
             Margin = new Padding(0),
             DefaultCellStyle = new DataGridViewCellStyle { Font = font },
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = SystemColors.ControlLight },
         };
 
         var c1 = MakeIndexColumn(font);

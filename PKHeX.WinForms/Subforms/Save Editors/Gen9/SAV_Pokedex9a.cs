@@ -15,6 +15,7 @@ public partial class SAV_Pokedex9a : Form
     private int lastIndex;
     private readonly bool CanSave;
     private readonly bool Loading;
+    private readonly MegaFormNames MegaNames;
 
     public SAV_Pokedex9a(SAV9ZA sav)
     {
@@ -39,6 +40,8 @@ public partial class SAV_Pokedex9a : Form
 
         // Fill List
         var filtered = GameInfo.FilteredSources;
+        var strings = filtered.Source.Strings;
+        MegaNames = FormConverter.GetMegaFormNames(strings.forms, Main.GenderSymbols, strings.Types);
         int maxSpecies = sav.MaxSpeciesID; // no DLC species
 
         CB_Species.InitializeBinding();
@@ -148,8 +151,61 @@ public partial class SAV_Pokedex9a : Form
         CHK_SeenMale.Checked = entry.GetIsGenderSeen(0);
         CHK_SeenFemale.Checked = entry.GetIsGenderSeen(1);
         CHK_SeenGenderless.Checked = entry.GetIsGenderSeen(2);
-        CHK_SeenMega.Checked = entry.GetIsSeenMega();
         CHK_SeenAlpha.Checked = entry.GetIsSeenAlpha();
+
+        CHK_SeenMega0.Checked = entry.GetIsSeenMega(0);
+        CHK_SeenMega1.Checked = entry.GetIsSeenMega(1);
+        CHK_SeenMega2.Checked = entry.GetIsSeenMega(2);
+        if (Zukan9a.IsMegaFormXY(species, SAV.SaveRevision))
+        {
+            CHK_SeenMega2.Visible = false;
+
+            CHK_SeenMega0.Text = MegaNames.X;
+            CHK_SeenMega1.Text = MegaNames.Y;
+            CHK_SeenMega0.Visible = true;
+            CHK_SeenMega1.Visible = true;
+        }
+        else if (Zukan9a.IsMegaFormZA(species, SAV.SaveRevision))
+        {
+            CHK_SeenMega2.Visible = false;
+
+            CHK_SeenMega0.Text = MegaNames.Regular;
+            CHK_SeenMega1.Text = MegaNames.Z;
+            CHK_SeenMega0.Visible = true;
+            CHK_SeenMega1.Visible = true;
+        }
+        else if (species is (int)Species.Meowstic)
+        {
+            CHK_SeenMega0.Text = MegaNames.MeowsticM;
+            CHK_SeenMega1.Text = MegaNames.MeowsticF;
+            CHK_SeenMega0.Visible = true;
+            CHK_SeenMega1.Visible = true;
+            CHK_SeenMega2.Visible = false;
+        }
+        else if (species is (int)Species.Magearna)
+        {
+            CHK_SeenMega0.Text = MegaNames.Magearna0;
+            CHK_SeenMega1.Text = MegaNames.Magearna1;
+            CHK_SeenMega0.Visible = true;
+            CHK_SeenMega1.Visible = true;
+            CHK_SeenMega2.Visible = false;
+        }
+        else if (species is (int)Species.Tatsugiri)
+        {
+            CHK_SeenMega0.Text = MegaNames.Tatsu0;
+            CHK_SeenMega1.Text = MegaNames.Tatsu1;
+            CHK_SeenMega2.Text = MegaNames.Tatsu2;
+            CHK_SeenMega0.Visible = true;
+            CHK_SeenMega1.Visible = true;
+            CHK_SeenMega2.Visible = true;
+        }
+        else
+        {
+            CHK_SeenMega0.Text = MegaNames.Regular;
+            CHK_SeenMega0.Visible = true;
+            CHK_SeenMega1.Visible = false;
+            CHK_SeenMega2.Visible = false;
+        }
 
         for (byte i = 0; i < forms.Length; i++)
         {
@@ -161,7 +217,7 @@ public partial class SAV_Pokedex9a : Form
 
         CB_DisplayForm.Items.Clear();
         CB_DisplayForm.Items.AddRange(forms);
-        CB_DisplayForm.SelectedIndex = Math.Clamp(entry.DisplayForm, 0, CB_Gender.Items.Count - 1);
+        CB_DisplayForm.SelectedIndex = Math.Clamp(entry.DisplayForm, 0, CB_DisplayForm.Items.Count - 1);
         CB_Gender.SelectedIndex = Math.Clamp((byte)entry.DisplayGender, 0, CB_Gender.Items.Count - 1);
         CHK_DisplayShiny.Checked = entry.GetDisplayIsShiny();
 
@@ -204,8 +260,24 @@ public partial class SAV_Pokedex9a : Form
         entry.SetIsGenderSeen(0, CHK_SeenMale.Checked);
         entry.SetIsGenderSeen(1, CHK_SeenFemale.Checked);
         entry.SetIsGenderSeen(2, CHK_SeenGenderless.Checked);
-        entry.SetIsSeenMega(CHK_SeenMega.Checked);
         entry.SetIsSeenAlpha(CHK_SeenAlpha.Checked);
+
+        if (Zukan9a.IsMegaFormXY(species, SAV.SaveRevision) || Zukan9a.IsMegaFormZA(species, SAV.SaveRevision) || species is (int)Species.Magearna or (int)Species.Meowstic)
+        {
+            entry.SetIsSeenMega(0, CHK_SeenMega0.Checked);
+            entry.SetIsSeenMega(1, CHK_SeenMega1.Checked);
+        }
+        else if (species == (int)Species.Tatsugiri)
+        {
+            entry.SetIsSeenMega(0, CHK_SeenMega0.Checked);
+            entry.SetIsSeenMega(1, CHK_SeenMega1.Checked);
+            entry.SetIsSeenMega(2, CHK_SeenMega2.Checked);
+        }
+        else
+        {
+            entry.SetIsSeenMega(0, CHK_SeenMega0.Checked);
+        }
+
         for (byte i = 0; i < CLB_FormSeen.Items.Count; i++)
         {
             entry.SetIsFormSeen(i, CLB_FormSeen.GetItemChecked(i));

@@ -65,6 +65,12 @@ public partial class SAV_Wondercard : Form
         DragEnter += Main_DragEnter;
         DragDrop += Main_DragDrop;
 
+        if (Application.IsDarkModeEnabled)
+        {
+            WinFormsUtil.InvertToolStripIcons(mnuVSD.Items);
+            WinFormsUtil.InvertToolStripIcons(mnuDel.Items);
+        }
+
         if (g is null)
             ClickView(pba[0], EventArgs.Empty);
         else
@@ -209,8 +215,7 @@ public partial class SAV_Wondercard : Form
     // Mystery Gift RW (window<->sav)
     private void ClickView(object sender, EventArgs e)
     {
-        var pb = WinFormsUtil.GetUnderlyingControl<PictureBox>(sender);
-        if (pb is null)
+        if (!WinFormsUtil.TryGetUnderlying<PictureBox>(sender, out var pb))
             return;
         int index = pba.IndexOf(pb);
 
@@ -229,8 +234,7 @@ public partial class SAV_Wondercard : Form
             return;
         }
 
-        var pb = WinFormsUtil.GetUnderlyingControl<PictureBox>(sender);
-        if (pb is null)
+        if (!WinFormsUtil.TryGetUnderlying<PictureBox>(sender, out var pb))
             return;
         int index = pba.IndexOf(pb);
 
@@ -265,8 +269,7 @@ public partial class SAV_Wondercard : Form
 
     private void ClickDelete(object sender, EventArgs e)
     {
-        var pb = WinFormsUtil.GetUnderlyingControl<PictureBox>(sender);
-        if (pb is null)
+        if (!WinFormsUtil.TryGetUnderlying<PictureBox>(sender, out var pb))
             return;
         int index = pba.IndexOf(pb);
 

@@ -226,7 +226,14 @@ public sealed class EvolutionGroupHOME : IEvolutionGroup
         PA8 => LA,
         PB8 => BDSP,
         PK9 => SV,
-        _ => throw new ArgumentOutOfRangeException(nameof(pk), pk, null),
+        _ => pk.Version switch // transferred to another game (Z-A)
+        {
+            GameVersion.PLA => LA,
+            GameVersion.SW or GameVersion.SH => SWSH,
+            GameVersion.BD or GameVersion.SP => BDSP,
+            GameVersion.SL or GameVersion.VL => SV,
+            _ => throw new ArgumentOutOfRangeException(nameof(pk), pk, null),
+        },
     };
 }
 
@@ -236,7 +243,7 @@ public sealed class EvolutionGroupHOME : IEvolutionGroup
 public sealed class EvolutionEnvironment8 : IEvolutionEnvironment
 {
     private static readonly EvolutionTree Tree = EvolutionTree.Evolves8;
-    private static EvolutionRuleTweak Tweak => EvolutionRuleTweak.Default;
+    private static EvolutionRuleTweak Tweak => EvolutionRuleTweak.Level100;
 
     public bool TryDevolve<T>(T head, PKM pk, byte currentMaxLevel, byte levelMin, bool skipChecks, out EvoCriteria result) where T : ISpeciesForm
     {
@@ -280,7 +287,7 @@ public sealed class EvolutionEnvironment8a : IEvolutionEnvironment
 public sealed class EvolutionEnvironment8b : IEvolutionEnvironment
 {
     private static readonly EvolutionTree Tree = EvolutionTree.Evolves8b;
-    private static EvolutionRuleTweak Tweak => EvolutionRuleTweak.Default;
+    private static EvolutionRuleTweak Tweak => EvolutionRuleTweak.Level100;
 
     public bool TryDevolve<T>(T head, PKM pk, byte currentMaxLevel, byte levelMin, bool skipChecks, out EvoCriteria result) where T : ISpeciesForm
         => Tree.Reverse.TryDevolve(head, pk, currentMaxLevel, levelMin, skipChecks, Tweak, out result);

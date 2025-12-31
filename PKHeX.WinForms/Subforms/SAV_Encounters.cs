@@ -28,6 +28,9 @@ public partial class SAV_Encounters : Form
     private const int GridWidth = 6;
     private const int GridHeight = 11;
 
+    // Criteria backing value (edited via PropertyGrid)
+    private EncounterCriteria _criteriaValue = EncounterCriteria.Unrestricted;
+
     public SAV_Encounters(PKMEditor f1, TrainerDatabase db)
     {
         InitializeComponent();
@@ -72,7 +75,7 @@ public partial class SAV_Encounters : Form
             };
             slot.Enter += (_, _) =>
             {
-                var index = Array.IndexOf(PKXBOXES, slot);
+                var index = PKXBOXES.IndexOf(slot);
                 if (index < 0)
                     return;
                 index += (SCR_Box.Value * RES_MIN);
@@ -99,12 +102,56 @@ public partial class SAV_Encounters : Form
         settings.Controls.Add(new PropertyGrid { Dock = DockStyle.Fill, SelectedObject = Main.Settings.EncounterDb });
         TC_SearchOptions.Controls.Add(settings);
 
+        // Initialize criteria PropertyGrid with default value
+        UpdateCriteriaPropertyGrid(BuildCriteriaFromTabs());
+
         // Load Data
         L_Count.Text = "Ready...";
 
         CenterToParent();
         CB_Species.Select();
         CheckIsSearchDisallowed();
+
+        if (Application.IsDarkModeEnabled)
+        {
+            WinFormsUtil.InvertToolStripIcons(menuStrip1.Items);
+            WinFormsUtil.InvertToolStripIcons(mnu.Items);
+        }
+    }
+
+    private void UpdateCriteriaPropertyGrid(EncounterCriteria value)
+    {
+        _criteriaValue = value;
+        PG_Criteria.SelectedObject = _criteriaValue; // box the struct for PropertyGrid
+    }
+
+    private void PG_Criteria_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
+    {
+        if (PG_Criteria.SelectedObject is EncounterCriteria crit)
+            _criteriaValue = crit; // unbox updated value back into our field
+    }
+
+    private void CriteriaReset_Click(object? sender, EventArgs e)
+    {
+        UpdateCriteriaPropertyGrid(EncounterCriteria.Unrestricted);
+        System.Media.SystemSounds.Asterisk.Play();
+    }
+
+    private void CriteriaFromTabs_Click(object? sender, EventArgs e)
+    {
+        UpdateCriteriaPropertyGrid(BuildCriteriaFromTabs());
+        System.Media.SystemSounds.Asterisk.Play();
+    }
+
+    private EncounterCriteria BuildCriteriaFromTabs()
+    {
+        var editor = PKME_Tabs.Data;
+        var set = new ShowdownSet(editor);
+        var mutations = EncounterMutationUtil.GetSuggested(editor.Context, set.Level);
+        var criteria = EncounterCriteria.GetCriteria(set, editor.PersonalInfo, mutations);
+        if (editor.Context.IsHyperTrainingAvailable(100))
+            criteria = criteria.ReviseIVsHyperTrainAvailable();
+        return criteria;
     }
 
     private void GetTypeFilters()
@@ -160,8 +207,9 @@ public partial class SAV_Encounters : Form
     // Important Events
     private void ClickView(object sender, EventArgs e)
     {
-        var pb = WinFormsUtil.GetUnderlyingControl<PictureBox>(sender);
-        int index = Array.IndexOf(PKXBOXES, pb);
+        if (!WinFormsUtil.TryGetUnderlying<PictureBox>(sender, out var pb))
+            ArgumentNullException.ThrowIfNull(pb);
+        int index = PKXBOXES.IndexOf(pb);
         if (index >= RES_MAX)
         {
             System.Media.SystemSounds.Exclamation.Play();
@@ -208,13 +256,9 @@ public partial class SAV_Encounters : Form
                 return EncounterCriteria.Unrestricted;
         }
 
-        var set = new ShowdownSet(editor);
-        var mutations = EncounterMutationUtil.GetSuggested(editor.Context, set.Level);
-        var criteria = EncounterCriteria.GetCriteria(set, editor.PersonalInfo, mutations);
+        var criteria = _criteriaValue;
         if (!isInChain)
             criteria = criteria with { Gender = Gender.Random }; // Genderless tabs and a gendered enc -> let's play safe.
-        if (editor.Context.IsHyperTrainingAvailable(100))
-            criteria = criteria.ReviseIVsHyperTrainAvailable();
         return criteria;
     }
 
@@ -518,7 +562,7 @@ public partial class SAV_Encounters : Form
 
     private void ShowHoverTextForSlot(PictureBox pb)
     {
-        int index = Array.IndexOf(PKXBOXES, pb);
+        int index = PKXBOXES.IndexOf(pb);
         if (!GetShiftedIndex(ref index))
             return;
 

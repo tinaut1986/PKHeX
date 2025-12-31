@@ -18,6 +18,13 @@ public partial class SAV_FestivalPlaza : Form
     public SAV_FestivalPlaza(SAV7 sav)
     {
         InitializeComponent();
+
+        if (Application.IsDarkModeEnabled)
+        {
+            foreach (TabPage tab in TC_Editor.TabPages)
+                tab.UseVisualStyleBackColor = false;
+        }
+
         SAV = (SAV7)(Origin = sav).Clone();
         editing = true;
         entry = -1;
@@ -615,7 +622,7 @@ public partial class SAV_FestivalPlaza : Form
         if (editing)
             return;
 
-        int mmIndex = Array.IndexOf(NUD_Messages, (NumericUpDown)sender);
+        int mmIndex = NUD_Messages.IndexOf((NumericUpDown)sender);
         if (mmIndex < 0)
             return;
 
@@ -706,8 +713,9 @@ public partial class SAV_FestivalPlaza : Form
 
     private void MnuSave_Click(object sender, EventArgs e)
     {
-        var pb = WinFormsUtil.GetUnderlyingControl<PictureBox>(sender);
-        int i = Array.IndexOf(PBs, pb);
+        if (!WinFormsUtil.TryGetUnderlying<PictureBox>(sender, out var pb))
+            return;
+        int i = PBs.IndexOf(pb);
         if (i < 0)
             return;
         WinFormsUtil.SavePKMDialog(p[i]);

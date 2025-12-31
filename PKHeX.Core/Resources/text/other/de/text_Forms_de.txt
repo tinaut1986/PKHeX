@@ -1136,4 +1136,7 @@ Edle
 Terastal
 Stellar
 Mittelgroße
+Kleine
+Große
 Extragroße
+Mega Z

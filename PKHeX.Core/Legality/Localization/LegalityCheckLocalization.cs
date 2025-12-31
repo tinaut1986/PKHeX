@@ -238,6 +238,7 @@ public sealed class LegalityCheckLocalization
     public string IVNotCorrect { get; set; } = "IVs do not match encounter requirements.";
     public string IVFlawlessCountGEQ_0 { get; set; } = "Should have at least {0} IVs = 31.";
 
+    public string LevelBoostNotZero { get; set; } = "Level Boost should be zero.";
     public string LevelEXPThreshold { get; set; } = "Current experience matches level threshold.";
     public string LevelEXPTooHigh { get; set; } = "Current experience exceeds maximum amount for level 100.";
     public string LevelMetBelow { get; set; } = "Current level is below met level.";
@@ -454,11 +455,11 @@ public sealed class LegalityCheckLocalization
     public string BulkSharingTrainerID { get; set; } = "Detected sharing of Trainer ID across multiple trainer names.";
     public string BulkSharingTrainerVersion { get; set; } = "Detected sharing of Trainer ID across multiple versions.";
     public string BulkDuplicateFusionSlot { get; set; } = "Detected multiple fusions of the same fusion stored slot species.";
-    public string BulkDuplicateMegaStoneSlot { get; set; } = "Detected multiple Pokémon holding the same Mega Stone.";
-    public string BulkDuplicateMegaStoneInventory { get; set; } = "Detected Pokémon holding a Mega Stone still stored in player inventory.";
-    public string BulkNotAcquiredMegaStoneInventory { get; set; } = "Mega Stone held by Pokémon has not been acquired in player inventory.";
-    public string BulkAssignedMegaStoneNotFound_0 { get; set; } = "{0} is marked as held by Pokémon but none found in slots checked.";
-    public string BulkFusionSourceInvalid { get; set; } = "The consumed Species-Form stored in the save file does not match the expected Species-Form of the fused slot.";
+    public string BulkHeldItemInventoryAssignedNoneHeld_0 { get; set; } = "{0} is marked as held player inventory, but no Pokémon found in slots checked.";
+    public string BulkHeldItemInventoryMultipleSlots_0 { get; set; } = "{0} is a unique item and cannot be held by multiple Pokémon.";
+    public string BulkHeldItemInventoryNotAcquired_0 { get; set; } = "{0} has not been acquired in player inventory.";
+    public string BulkHeldItemInventoryUnassigned_0 { get; set; } = "{0} is not marked as assigned in player inventory.";
+    public string BulkFusionSourceInvalid { get; set; } = "The subsumed Species-Form stored in the save file does not match the expected Species-Form of the fused slot.";
 }
 
 [JsonSerializable(typeof(LegalityCheckLocalization))]

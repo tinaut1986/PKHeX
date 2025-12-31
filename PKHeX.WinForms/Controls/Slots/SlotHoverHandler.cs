@@ -23,7 +23,7 @@ public sealed class SlotHoverHandler : IDisposable
     public bool GlowHover { private get; set; } = true;
 
     private readonly SummaryPreviewer Preview = new();
-    private static Bitmap Hover => SpriteUtil.Spriter.Hover;
+    private static Bitmap Hover => Application.IsDarkModeEnabled ? ImageUtil.ChangeOpacity(SpriteUtil.Spriter.Hover, 0.5) : SpriteUtil.Spriter.Hover;
 
     private readonly BitmapAnimator HoverWorker = new();
 
@@ -37,9 +37,9 @@ public sealed class SlotHoverHandler : IDisposable
     /// <param name="lastSlot">The last slot tracker image to update.</param>
     public void Start(PictureBox pb, SlotTrackerImage lastSlot)
     {
-        var view = WinFormsUtil.FindFirstControlOfType<ISlotViewer<PictureBox>>(pb);
-        if (view is null)
-            throw new InvalidCastException(nameof(view));
+        if (!WinFormsUtil.TryFindFirstControlOfType<ISlotViewer<PictureBox>>(pb, out var view))
+            ArgumentNullException.ThrowIfNull(view);
+
         var data = view.GetSlotData(pb);
         var pk = data.Read(view.SAV);
         Slot = pb;
@@ -95,7 +95,6 @@ public sealed class SlotHoverHandler : IDisposable
     {
         HoverWorker.Dispose();
         Slot = null;
-        Draw.Dispose();
     }
 
     /// <summary>

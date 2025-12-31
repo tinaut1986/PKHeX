@@ -1136,4 +1136,7 @@ Masterpiece
 Terastal
 Stellar
 Medium
+Small
+Large
 Jumbo
+Mega Z

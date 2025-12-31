@@ -146,7 +146,6 @@ public enum LegalityCheckResultCode : ushort
     FormPikachuCosplay,
     FormPikachuCosplayInvalid,
     FormPikachuEventInvalid,
-    FormInvalidExpect_0,
     FormValid,
     FormVivillon,
     FormVivillonEventPre,
@@ -220,6 +219,7 @@ public enum LegalityCheckResultCode : ushort
     IVNotCorrect,
 
     // Level
+    LevelBoostNotZero,
     LevelEXPThreshold,
     LevelEXPTooHigh,
     LevelMetBelow,
@@ -380,9 +380,6 @@ public enum LegalityCheckResultCode : ushort
     BulkSharingPIDEncounterType,
     BulkDuplicateFusionSlot,
     BulkDuplicateMysteryGiftEggReceived,
-    BulkDuplicateMegaStoneSlot,
-    BulkDuplicateMegaStoneInventory,
-    BulkNotAcquiredMegaStoneInventory,
     BulkFusionSourceInvalid,
     BulkSharingTrainerIDs,
     BulkSharingTrainerVersion,
@@ -397,6 +394,7 @@ public enum LegalityCheckResultCode : ushort
     EvoTradeReqOutsider_0,
     FormArgumentLEQ_0,
     FormArgumentGEQ_0,
+    FormInvalidExpect_0,
     HyperTrainLevelGEQ_0, // level
     IVAllEqual_0,
     IVFlawlessCountGEQ_0, // count
@@ -428,7 +426,10 @@ public enum LegalityCheckResultCode : ushort
 
     // Single Argument: Item ID
     FirstWithItem,
-    BulkAssignedMegaStoneNotFound_0 = FirstWithItem, // item ID
+    BulkHeldItemInventoryAssignedNoneHeld_0 = FirstWithItem, // item ID
+    BulkHeldItemInventoryMultipleSlots_0,
+    BulkHeldItemInventoryNotAcquired_0,
+    BulkHeldItemInventoryUnassigned_0,
 
     // One Argument: Language
     FirstWithLanguage,

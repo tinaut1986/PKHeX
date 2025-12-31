@@ -73,6 +73,10 @@ public readonly ref struct PokeDexEntry9a
             FlagsFormSeen &= ~(1u << form);
     }
 
+    public void SetIsFormsSeen(uint formsOr) => FlagsFormSeen |= formsOr;
+    public void SetIsFormsCaught(uint formsOr) => FlagsFormCaught |= formsOr;
+    public void SetIsShinySeen(uint formsOr) => FlagsShinySeen |= formsOr;
+
     public static int GetDexLangFlag(int lang) => (uint)lang switch
     {
         > (int)MaxLanguageID or 6 or <= 0 => 0, // invalid language
@@ -118,9 +122,17 @@ public readonly ref struct PokeDexEntry9a
             FlagsShinySeen &= ~(1u << form);
     }
 
-    public bool GetIsSeenMega() => FlagIsMega != 0;
+    public bool GetIsSeenMega(byte megaIndex) => ((FlagIsMega >> megaIndex) & 1) != 0;
     public bool GetIsSeenAlpha() => FlagIsAlpha != 0;
-    public void SetIsSeenMega(bool value) => FlagIsMega = value ? (byte)1 : (byte)0;
+
+    public void SetIsSeenMega(byte megaIndex, bool value)
+    {
+        if (value)
+            FlagIsMega |= (byte)(1u << megaIndex);
+        else
+            FlagIsMega &= (byte)~(1u << megaIndex);
+    }
+
     public void SetIsSeenAlpha(bool value) => FlagIsAlpha = value ? (byte)1 : (byte)0;
 
     public DisplayGender9a GetDisplayGender(Gender gender, ushort species, byte form)
@@ -139,13 +151,15 @@ public readonly ref struct PokeDexEntry9a
         }
 
         // Gender differences?
-        if (BiGender.Contains(species))
+        if (BiGender.Contains(species) || BiGenderDLC.Contains(species))
             return gender == Gender.Male ? DisplayGender9a.Male : DisplayGender9a.Female;
         return DisplayGender9a.GenderedNoDifference;
     }
+
     /// <summary>
     /// Species with gender differences in the dex.
     /// </summary>
+    /// <remarks>Unique models to display</remarks>
     private static ReadOnlySpan<ushort> BiGender =>
     [
         003, 025, 026, 064, 065, 123, 129, 130, 133,
@@ -154,6 +168,20 @@ public readonly ref struct PokeDexEntry9a
         407, 443, 444, 445, 449, 450, 459, 460,
         485, // Heatran
         668, // Pyroar
+    ];
+
+    private static ReadOnlySpan<ushort> BiGenderDLC =>
+    [
+        (int)Species.Zubat,
+        (int)Species.Golbat, // no Crobat
+
+        (int)Species.Torchic,
+        (int)Species.Combusken,
+        (int)Species.Blaziken,
+
+        (int)Species.Starly,
+        (int)Species.Staravia,
+        (int)Species.Staraptor,
     ];
 
     public void SetDisplayGender(Gender gender, ushort species, byte form)

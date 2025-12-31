@@ -112,6 +112,8 @@ public static class LumioseRNG
             return false;
         pk.Nature = pk.StatNature = nature;
 
+        // If Hyperspace, the player can have an active Teensy/Humungo boost. The scale is pre-determined outside of the seed=>pa9, consider it not correlated or traceable.
+        // When calling the method to verify the entity, pass SizeType9.VALUE instead.
         pk.Scale = enc.SizeType.GetSizeValue(enc.Scale, ref rand);
         return true;
     }
@@ -121,16 +123,25 @@ public static class LumioseRNG
     /// </summary>
     private static void GenerouslyPreApplyIVs(in EncounterCriteria criteria, Span<int> ivs, byte encFlawlessIVs)
     {
+        // The game uses a separate seed to pre-fill flawless IVs.
+        // Sure we can iterate [0,n), but that usually results in a less-than-random result (HP, ATK, DEF get filled first always).
+        // So, we can "randomize" our indexes we apply to.
+        Span<int> indexes = stackalloc int[6];
+        for (int i = 0; i < indexes.Length; i++)
+            indexes[i] = i;
+        Util.Rand.Shuffle(indexes);
+
         // Try to give a perfect IV where it's wanted first
         for (int i = 0; i < ivs.Length; i++)
         {
-            if (ivs[i] != UNSET)
+            var index = indexes[i];
+            if (ivs[index] != UNSET)
                 continue;
-            var desire = criteria.GetIV(i);
+            var desire = criteria.GetIV(index);
             if (desire is not MAX)
                 continue;
 
-            ivs[i] = MAX;
+            ivs[index] = MAX;
             encFlawlessIVs--;
             if (encFlawlessIVs == 0)
                 return;
@@ -139,13 +150,14 @@ public static class LumioseRNG
         // Then try to give a perfect IV where it's allowed
         for (int i = 0; i < ivs.Length; i++)
         {
-            if (ivs[i] != UNSET)
+            var index = indexes[i];
+            if (ivs[index] != UNSET)
                 continue;
-            var desire = criteria.GetIV(i);
+            var desire = criteria.GetIV(index);
             if (desire >= 0)
                 continue;
 
-            ivs[i] = MAX;
+            ivs[index] = MAX;
             encFlawlessIVs--;
             if (encFlawlessIVs == 0)
                 return;
@@ -154,13 +166,14 @@ public static class LumioseRNG
         // Apply remaining flawless IVs if not <= 1
         for (int i = 0; i < ivs.Length; i++)
         {
-            if (ivs[i] != UNSET)
+            var index = indexes[i];
+            if (ivs[index] != UNSET)
                 continue;
-            var desire = criteria.GetIV(i);
+            var desire = criteria.GetIV(index);
             if (desire is 0 or 1)
                 continue;
 
-            ivs[i] = MAX;
+            ivs[index] = MAX;
             encFlawlessIVs--;
             if (encFlawlessIVs == 0)
                 return;
@@ -169,8 +182,9 @@ public static class LumioseRNG
         // If we reach here... we couldn't satisfy the flawless IV count requested. Probably the encounter isn't what the user expected/wanted.
         for (int i = 0; i < ivs.Length; i++)
         {
-            if (ivs[i] == UNSET)
-                ivs[i] = MAX;
+            var index = indexes[i];
+            if (ivs[index] == UNSET)
+                ivs[index] = MAX;
         }
     }
 
@@ -256,6 +270,8 @@ public static class LumioseRNG
             return false;
 
         // Scale
+        // If Hyperspace, the player can have an active Teensy/Humungo boost. The scale is pre-determined outside of the seed=>pa9, consider it not correlated or traceable.
+        // When calling the method to verify the entity, pass SizeType9.VALUE instead.
         {
             var value = enc.SizeType.GetSizeValue(enc.Scale, ref rand);
             if (pk is IScaledSize3 s)

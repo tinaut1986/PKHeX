@@ -37,8 +37,13 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
 
     public bool HaX;
     public bool ModifyPKM { private get; set; }
-    private bool _hideSecret;
-    public bool HideSecretDetails { private get => _hideSecret; set => ToggleSecrets(SAV, _hideSecret = value); }
+
+    public bool HideSecretDetails
+    {
+        private get;
+        set => ToggleSecrets(SAV, field = value);
+    }
+
     public ToolStripMenuItem Menu_Redo { get; set; } = null!;
     public ToolStripMenuItem Menu_Undo { get; set; } = null!;
     private bool FieldsLoaded;
@@ -78,6 +83,9 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
         M = new SlotChangeManager(this) { Env = EditEnv };
         Box.Setup(M);
         SL_Party.Setup(M);
+
+        if (Application.IsDarkModeEnabled)
+            WinFormsUtil.InvertToolStripIcons(Tab_Box.ContextMenuStrip.Items);
 
         SL_Extra.ViewIndex = -2;
         menu = new ContextMenuSAV { Manager = M };
@@ -622,6 +630,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
     private void B_OpenUnityTowerEditor_Click(object sender, EventArgs e) => OpenDialog(new SAV_UnityTower((SAV5)SAV));
     private void B_OpenChatterEditor_Click(object sender, EventArgs e) => OpenDialog(new SAV_Chatter(SAV));
     private void B_OpenGear_Click(object sender, EventArgs e) => OpenDialog(new SAV_Gear((SAV4BR)SAV));
+    private void B_Donuts_Click(object sender, EventArgs e) => OpenDialog(new SAV_Donut9a((SAV9ZA)SAV));
 
     private void B_OpenSecretBase_Click(object sender, EventArgs e)
     {
@@ -733,7 +742,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
             if (form is not null)
                 form.CenterToForm(ParentForm);
             else
-                form = new SAV_BattlePass(sav, M.Env.PKMEditor) { Owner = ParentForm };
+                form = new SAV_BattlePass(sav, M.Env.PKMEditor);
             form.BringToFront();
             form.Show();
         }
@@ -888,9 +897,13 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
 
     private void B_OpenFashion_Click(object sender, EventArgs e)
     {
-        var sav = (SAV9ZA)SAV;
-        using var form = new SAV_Fashion9a(sav);
-        form.ShowDialog();
+        using var form = SAV switch
+        {
+            SAV9SV s9sv => new SAV_Fashion9(s9sv),
+            SAV9ZA s9za => new SAV_Fashion9(s9za),
+            _ => (Form?)null,
+        };
+        form?.ShowDialog();
     }
 
     private void B_ConvertKorean_Click(object sender, EventArgs e)
@@ -979,7 +992,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
         bool reload = SAV is IStorageCleanup b && b.FixStoragePreWrite();
         if (reload)
             ReloadSlots();
-        return WinFormsUtil.ExportSAVDialog(SAV, SAV.CurrentBox);
+        return WinFormsUtil.ExportSAVDialog(this, SAV, SAV.CurrentBox);
     }
 
     public bool ExportBackup()
@@ -1156,8 +1169,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
                 if (height > allowed)
                 {
                     var form = FindForm();
-                    if (form is not null)
-                        form.Height += height - allowed;
+                    form?.Height += height - allowed;
                 }
             }
         }
@@ -1290,7 +1302,8 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
         B_RaidsDLC2.Visible = sav is SAV8SWSH { SaveRevision: >= 2 } or SAV9SV { SaveRevision: >= 2 };
         FLP_SAVtools.Visible = B_Blocks.Visible = true;
 
-        B_OpenFashion.Visible = sav is SAV9ZA;
+        B_OpenFashion.Visible = sav is SAV9SV or SAV9ZA;
+        B_Donuts.Visible = sav is SAV9ZA { SaveRevision: >= 1 };
 
         var list = FLP_SAVtools.Controls.OfType<Control>().OrderBy(z => z.Text).ToArray();
         FLP_SAVtools.Controls.Clear();

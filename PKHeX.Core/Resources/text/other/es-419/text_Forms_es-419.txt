@@ -1136,4 +1136,7 @@ Exquisita
 Teracristal
 Astral
 Mediana
+Pequeña
+Grande
 Enorme
+Mega Z

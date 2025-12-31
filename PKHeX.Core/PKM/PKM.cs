@@ -46,7 +46,7 @@ public abstract class PKM : ISpeciesForm, ITrainerID32, IGeneration, IShiny, ILa
 
     protected abstract byte[] Encrypt();
     public abstract EntityContext Context { get; }
-    public byte Format => Context.Generation();
+    public byte Format => Context.Generation;
     public TrainerIDFormat TrainerIDDisplayFormat => this.GetTrainerIDFormat();
 
     private Span<byte> Write()
@@ -612,11 +612,12 @@ public abstract class PKM : ISpeciesForm, ITrainerID32, IGeneration, IShiny, ILa
         if (gv == PersonalInfo.RatioMagicMale)
             return gender == 0;
 
-        var gen = Generation;
-        if (gen is not (3 or 4 or 5))
-            return gender == (gender & 1);
+        if (gender >= 2)
+            return false; // genderless would have returned above
+        if (!(Gen3 || Gen4 || Gen5))
+            return true; // not tied to PID
 
-        return gender == EntityGender.GetFromPIDAndRatio(PID, gv);
+        return gender == EntityGender.GetFromPID(PID, gv);
     }
 
     /// <summary>
@@ -726,7 +727,7 @@ public abstract class PKM : ISpeciesForm, ITrainerID32, IGeneration, IShiny, ILa
             LoadStats(stats, p, level);
 
         // Amplify stats based on the stat nature.
-        NatureAmp.ModifyStatsForNature(stats, StatNature);
+        StatNature.ModifyStatsForNature(stats);
     }
 
     private void LoadStats(Span<ushort> stats, IBaseStat p, IHyperTrain t, byte level)
