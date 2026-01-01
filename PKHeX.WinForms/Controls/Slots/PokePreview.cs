@@ -10,6 +10,7 @@ namespace PKHeX.WinForms.Controls;
 
 public sealed partial class PokePreview : Form
 {
+
     private static readonly Image[] GenderImages =
     [
         Properties.Resources.gender_0,

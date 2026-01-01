@@ -47,6 +47,7 @@ namespace PKHeX.WinForms
             SC_Main.Panel1.Controls.Add(dgData);
             dgData.Dock = DockStyle.Fill;
             dgData.SelectionChanged += Data_SelectionChanged;
+            dgData.CellClick += Data_CellClick;
             dgData.CellDoubleClick += Data_CellDoubleClick;
 
             // Side Panel Container
@@ -153,23 +154,39 @@ namespace PKHeX.WinForms
             var row = dgData.Rows[e.RowIndex];
             if (row.DataBoundItem is EntitySummaryImage summary)
             {
-                var pk = summary.Entity;
-                
-                // Create a temporary blank save file matching the Pokemon's generation
-                // to correctly initialize the editor's dropdowns and logic for that game.
-                var tempSAV = BlankSaveFile.Get(pk.Context);
-                
-                // Update global data sources to avoid filtering out species/items not in the current save's game.
-                var oldHaX = Main.HaX;
-                GameInfo.FilteredSources = new FilteredGameDataSource(tempSAV, GameInfo.Sources, true);
-                
-                // Fully re-initialize the editor interface for this specific Pokemon and generation.
-                PKME.SetPKMFormatMode(pk);
-                PKME.ToggleInterface(tempSAV, pk);
-                
-                var msg = $"Pokémon loaded into the editor.\nFormat: {pk.Context}\n\nNote: The editor is now in {pk.Context} mode. Your current save file is safe; this Pokémon is only in the editor tabs.";
-                WinFormsUtil.Alert(msg);
+                PKME.PopulateFields(summary.Entity);
             }
+        }
+
+        private void Data_CellClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (ModifierKeys != Keys.Control) return;
+
+            var row = dgData.Rows[e.RowIndex];
+            if (row.DataBoundItem is EntitySummaryImage summary)
+            {
+                PKME.PopulateFields(summary.Entity);
+            }
+        }
+
+        public void UpdateSpecies(ushort species, List<SlotCache> results)
+        {
+            Text = $"{((Species)species).ToString()} Sightings ({results.Count})";
+            var settings = Main.Settings.Report;
+            var extra = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(settings.ExtraProperties);
+            var hide = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(settings.HiddenProperties);
+            PopulateData(results, extra, hide);
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+            base.OnFormClosing(e);
         }
 
         private void UpdateSidePanel(PKM? pk)
