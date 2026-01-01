@@ -29,6 +29,7 @@ public partial class SAV_Database : Form
     private const int GridHeight = 11;
 
     private readonly PictureBox[] PKXBOXES;
+    private readonly PictureBox[] PKXBOXES_LD;
     private readonly string DatabasePath = Main.DatabasePath;
     private List<SlotCache> Results = [];
     private List<SlotCache> RawDB = [];
@@ -41,6 +42,11 @@ public partial class SAV_Database : Form
     private const int MAXFORMAT = Latest.Generation;
     private readonly SummaryPreviewer ShowSet = new();
     private readonly CancellationTokenSource cts = new();
+    private readonly ContextMenuStrip mnuLD = new();
+    private SpeciesBoxView? LD_BoxView;
+    private LivingDexReport? LD_GridView;
+    private int ldSelected = -1;
+    private ushort selectedSpeciesID = 0;
 
     public SAV_Database(PKMEditor f1, SAVEditor saveditor)
     {
@@ -80,6 +86,24 @@ public partial class SAV_Database : Form
         if (hdelta != 0)
             Height += hdelta;
         PKXBOXES = [.. grid.Entries];
+
+        var gridLD = LivingDexPokeGrid;
+        gridLD.InitializeGrid(GridWidth, GridHeight, SpriteUtil.Spriter);
+        PKXBOXES_LD = [.. gridLD.Entries];
+
+        foreach (var slot in PKXBOXES_LD)
+        {
+            slot.MouseClick += (s, e) => { if (e.Button == MouseButtons.Left) ClickLivingDex(slot, e); };
+            slot.MouseDoubleClick += (s, e) => { if (e.Button == MouseButtons.Left) OpenDetailWindow(slot, detail: false); };
+            slot.ContextMenuStrip = mnuLD;
+            if (Main.Settings.Hover.HoverSlotShowText)
+            {
+                slot.MouseMove += (_, args) => ShowSet.UpdatePreviewPosition(args.Location);
+                slot.MouseEnter += (_, _) => ShowHoverTextForLivingDex(slot);
+                slot.MouseLeave += (_, _) => ShowSet.Clear();
+            }
+        }
+        InitializeLivingDexMenu();
 
         // Enable Scrolling when hovered over
         foreach (var slot in PKXBOXES)
@@ -669,8 +693,213 @@ public partial class SAV_Database : Form
         SCR_Box.Value = 0;
         FillPKXBoxes(0);
 
+        UpdateLivingDex();
+
         L_Count.Text = string.Format(Counter, Results.Count);
         B_Search.Enabled = true;
+    }
+
+    private void UpdateLivingDex()
+    {
+        int maxSpecies = (int)SAV.MaxSpeciesID;
+        SCR_LivingDex.Maximum = (int)Math.Ceiling((decimal)maxSpecies / RES_MIN);
+        if (SCR_LivingDex.Maximum > 0) SCR_LivingDex.Maximum--;
+        SCR_LivingDex.Value = 0;
+        ldSelected = -1;
+        FillLivingDexBoxes(0);
+
+        if (selectedSpeciesID != 0)
+            UpdateDetailWindows(selectedSpeciesID);
+    }
+
+    private void UpdateScrollLivingDex(object sender, ScrollEventArgs e)
+    {
+        if (e.OldValue == e.NewValue)
+            return;
+        FillLivingDexBoxes(e.NewValue);
+        ShowSet.Clear();
+    }
+
+    private void FillLivingDexBoxes(int start)
+    {
+        int maxSpecies = (int)SAV.MaxSpeciesID;
+        int begin = start * RES_MIN;
+        int end = Math.Min(RES_MAX, maxSpecies - begin);
+        
+        var filteredResultSpecies = Results.Select(z => (ushort)z.Entity.Species).ToHashSet();
+
+        for (int i = 0; i < end; i++)
+        {
+            var species = (ushort)(begin + i + 1);
+            bool owned = filteredResultSpecies.Contains(species);
+            
+            // Use modern sprites (Gen 9 context) regardless of the loaded save
+            var img = SpriteUtil.GetSprite(species, 0, 0, 0, 0, false, Shiny.Never, EntityContext.Gen9);
+            if (!owned)
+                img = Drawing.ImageUtil.ChangeAllColorTo(img, Color.Black);
+            
+            PKXBOXES_LD[i].Image = img;
+            PKXBOXES_LD[i].Tag = species;
+            
+            PKXBOXES_LD[i].BackgroundImage = species == selectedSpeciesID ? SpriteUtil.Spriter.View : null;
+            if (species == selectedSpeciesID) ldSelected = i;
+        }
+        for (int i = end; i < RES_MAX; i++)
+        {
+            PKXBOXES_LD[i].Image = null;
+            PKXBOXES_LD[i].Tag = null;
+        }
+    }
+
+    private void ShowHoverTextForLivingDex(PictureBox slot)
+    {
+        if (slot.Tag is not ushort species)
+            return;
+        
+        var name = ((Species)species).ToString();
+        var ownedCount = Results.Count(z => z.Entity.Species == (int)species);
+        var text = ownedCount > 0 ? $"#{species:000} {name} ({ownedCount})" : $"#{species:000} {name}";
+        
+        hover.SetToolTip(slot, text);
+    }
+
+    private void ClickLivingDex(PictureBox slot, MouseEventArgs e)
+    {
+        if (slot.Tag is not ushort species)
+            return;
+
+        int index = PKXBOXES_LD.IndexOf(slot);
+        SelectLDSpecies(index);
+
+        switch (ModifierKeys)
+        {
+            case Keys.Alt:
+                OpenDetailWindow(slot, detail: true);
+                break;
+            case Keys.Shift:
+                ApplyLivingDexFilter(species);
+                break;
+        }
+    }
+
+    private void SelectLDSpecies(int index)
+    {
+        if (ldSelected != -1)
+            PKXBOXES_LD[ldSelected].BackgroundImage = null;
+
+        ldSelected = index;
+        selectedSpeciesID = (ushort)(PKXBOXES_LD[index].Tag ?? 0);
+        
+        if (ldSelected != -1)
+            PKXBOXES_LD[ldSelected].BackgroundImage = SpriteUtil.Spriter.View;
+
+        if (selectedSpeciesID != 0)
+            UpdateDetailWindows(selectedSpeciesID);
+    }
+
+    private void OpenDetailWindow(PictureBox slot, bool detail)
+    {
+        if (slot.Tag is not ushort species)
+            return;
+
+        if (detail)
+        {
+            LD_GridView ??= new LivingDexReport(PKME_Tabs);
+            var list = RawDB.Where(z => z.Entity.Species == species).ToList();
+            LD_GridView.UpdateSpecies(species, list);
+            LD_GridView.Text = $"#{species:000} {(Species)species} Sightings ({list.Count})";
+            LD_GridView.Show();
+            LD_GridView.BringToFront();
+        }
+        else
+        {
+            LD_BoxView ??= new SpeciesBoxView(PKME_Tabs, SAV);
+            LD_BoxView.UpdateSpecies(species, RawDB);
+            LD_BoxView.Text = $"#{species:000} {(Species)species} Box View";
+            LD_BoxView.Show();
+            LD_BoxView.BringToFront();
+        }
+    }
+
+    private void UpdateDetailWindows(ushort species)
+    {
+        var list = RawDB.Where(z => z.Entity.Species == species).ToList();
+        if (LD_BoxView?.Visible == true)
+        {
+            LD_BoxView.UpdateSpecies(species, RawDB);
+            LD_BoxView.Text = $"#{species:000} {(Species)species} Box View";
+        }
+        if (LD_GridView?.Visible == true)
+        {
+            LD_GridView.UpdateSpecies(species, list);
+            LD_GridView.Text = $"#{species:000} {(Species)species} Sightings ({list.Count})";
+        }
+    }
+
+    private void ApplyLivingDexFilter(ushort species)
+    {
+        for (int i = 0; i < CB_Species.Items.Count; i++)
+        {
+            if (CB_Species.Items[i] is ComboItem ci && ci.Value == species)
+            {
+                CB_Species.SelectedIndex = i;
+                break;
+            }
+        }
+        B_Search_Click(null!, EventArgs.Empty);
+        TC_View.SelectedTab = Tab_Results;
+    }
+
+    private void InitializeLivingDexMenu()
+    {
+        var apply = new ToolStripMenuItem("&Apply to filter");
+        apply.Click += (s, e) => { if (mnuLD.Tag is ushort species) ApplyLivingDexFilter(species); };
+        
+        var view = new ToolStripMenuItem("&Box View (Double Click)");
+        view.Click += (s, e) => { if (mnuLD.Tag is ushort species) OpenDetailWindow(mnuLD.SourceControl as PictureBox ?? new PictureBox { Tag = species }, false); };
+
+        var report = new ToolStripMenuItem("Show &Grid View (Alt+Click)");
+        report.Click += (s, e) => { if (mnuLD.Tag is ushort species) OpenDetailWindow(mnuLD.SourceControl as PictureBox ?? new PictureBox { Tag = species }, true); };
+
+        var fullReport = new ToolStripMenuItem("Show &Full Report");
+        fullReport.Click += (s, e) => { GenerateDBReport(null!, EventArgs.Empty); };
+
+        mnuLD.Items.AddRange(new ToolStripItem[] { apply, view, report, new ToolStripSeparator(), fullReport });
+        mnuLD.Opening += (s, e) =>
+        {
+            var pb = mnuLD.SourceControl as PictureBox;
+            if (pb?.Tag is not ushort species)
+            {
+                e.Cancel = true;
+                return;
+            }
+            mnuLD.Tag = species;
+            var owned = Results.Any(z => z.Entity.Species == (int)species);
+            view.Enabled = report.Enabled = owned;
+        };
+    }
+
+    private void ViewFirstOfSpecies(ushort species)
+    {
+        var first = Results.FirstOrDefault(z => z.Entity.Species == (int)species);
+        if (first == null) return;
+        PKME_Tabs.PopulateFields(first.Entity);
+    }
+
+    private void ShowSpeciesReport(ushort species)
+    {
+        var list = Results.Where(z => z.Entity.Species == (int)species).ToList();
+        if (list.Count == 0) return;
+
+        if (this.OpenWindowExists<LivingDexReport>())
+             return;
+
+        var report = new LivingDexReport(PKME_Tabs);
+        report.Show();
+        var settings = Main.Settings.Report;
+        var extra = CollectionsMarshal.AsSpan(settings.ExtraProperties);
+        var hide = CollectionsMarshal.AsSpan(settings.HiddenProperties);
+        report.PopulateData(list, extra, hide);
     }
 
     private void FillPKXBoxes(int start)

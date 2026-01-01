@@ -29,6 +29,11 @@ namespace PKHeX.WinForms
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            TC_View = new System.Windows.Forms.TabControl();
+            Tab_Results = new System.Windows.Forms.TabPage();
+            Tab_LivingDex = new System.Windows.Forms.TabPage();
+            LivingDexPokeGrid = new Controls.PokeGrid();
+            SCR_LivingDex = new System.Windows.Forms.VScrollBar();
             SCR_Box = new System.Windows.Forms.VScrollBar();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             Menu_Close = new System.Windows.Forms.ToolStripMenuItem();
@@ -263,13 +268,67 @@ namespace PKHeX.WinForms
             P_Results.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             P_Results.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             P_Results.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            P_Results.Controls.Add(DatabasePokeGrid);
-            P_Results.Controls.Add(SCR_Box);
+            P_Results.Controls.Add(TC_View);
             P_Results.Location = new System.Drawing.Point(14, 37);
             P_Results.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             P_Results.Name = "P_Results";
             P_Results.Size = new System.Drawing.Size(332, 406);
             P_Results.TabIndex = 66;
+            // 
+            // TC_View
+            // 
+            TC_View.Controls.Add(Tab_Results);
+            TC_View.Controls.Add(Tab_LivingDex);
+            TC_View.Dock = System.Windows.Forms.DockStyle.Fill;
+            TC_View.Location = new System.Drawing.Point(0, 0);
+            TC_View.Name = "TC_View";
+            TC_View.SelectedIndex = 0;
+            TC_View.Size = new System.Drawing.Size(330, 404);
+            TC_View.TabIndex = 3;
+            // 
+            // Tab_Results
+            // 
+            Tab_Results.Controls.Add(DatabasePokeGrid);
+            Tab_Results.Controls.Add(SCR_Box);
+            Tab_Results.Location = new System.Drawing.Point(4, 24);
+            Tab_Results.Name = "Tab_Results";
+            Tab_Results.Padding = new System.Windows.Forms.Padding(3);
+            Tab_Results.Size = new System.Drawing.Size(322, 376);
+            Tab_Results.TabIndex = 0;
+            Tab_Results.Text = "Results";
+            Tab_Results.UseVisualStyleBackColor = true;
+            // 
+            // Tab_LivingDex
+            // 
+            Tab_LivingDex.Controls.Add(LivingDexPokeGrid);
+            Tab_LivingDex.Controls.Add(SCR_LivingDex);
+            Tab_LivingDex.Location = new System.Drawing.Point(4, 24);
+            Tab_LivingDex.Name = "Tab_LivingDex";
+            Tab_LivingDex.Padding = new System.Windows.Forms.Padding(3);
+            Tab_LivingDex.Size = new System.Drawing.Size(322, 376);
+            Tab_LivingDex.TabIndex = 1;
+            Tab_LivingDex.Text = "Living Dex";
+            Tab_LivingDex.UseVisualStyleBackColor = true;
+            // 
+            // SCR_LivingDex
+            // 
+            SCR_LivingDex.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            SCR_LivingDex.LargeChange = 1;
+            SCR_LivingDex.Location = new System.Drawing.Point(295, 3);
+            SCR_LivingDex.Name = "SCR_LivingDex";
+            SCR_LivingDex.Size = new System.Drawing.Size(24, 370);
+            SCR_LivingDex.TabIndex = 1;
+            SCR_LivingDex.Scroll += UpdateScrollLivingDex;
+            // 
+            // SCR_Box
+            // 
+            SCR_Box.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            SCR_Box.LargeChange = 1;
+            SCR_Box.Location = new System.Drawing.Point(295, 3);
+            SCR_Box.Name = "SCR_Box";
+            SCR_Box.Size = new System.Drawing.Size(24, 370);
+            SCR_Box.TabIndex = 1;
+            SCR_Box.Scroll += UpdateScroll;
             // 
             // DatabasePokeGrid
             // 
@@ -277,8 +336,17 @@ namespace PKHeX.WinForms
             DatabasePokeGrid.Location = new System.Drawing.Point(2, 2);
             DatabasePokeGrid.Margin = new System.Windows.Forms.Padding(0);
             DatabasePokeGrid.Name = "DatabasePokeGrid";
-            DatabasePokeGrid.Size = new System.Drawing.Size(293, 399);
+            DatabasePokeGrid.Size = new System.Drawing.Size(293, 370);
             DatabasePokeGrid.TabIndex = 2;
+            // 
+            // LivingDexPokeGrid
+            // 
+            LivingDexPokeGrid.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            LivingDexPokeGrid.Location = new System.Drawing.Point(2, 2);
+            LivingDexPokeGrid.Margin = new System.Windows.Forms.Padding(0);
+            LivingDexPokeGrid.Name = "LivingDexPokeGrid";
+            LivingDexPokeGrid.Size = new System.Drawing.Size(293, 370);
+            LivingDexPokeGrid.TabIndex = 2;
             // 
             // CB_Ability
             // 
@@ -999,6 +1067,11 @@ namespace PKHeX.WinForms
 
         #endregion
 
+        private System.Windows.Forms.TabControl TC_View;
+        private System.Windows.Forms.TabPage Tab_Results;
+        private System.Windows.Forms.TabPage Tab_LivingDex;
+        private Controls.PokeGrid LivingDexPokeGrid;
+        private System.Windows.Forms.VScrollBar SCR_LivingDex;
         private System.Windows.Forms.VScrollBar SCR_Box;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem Menu_Close;

@@ -55,6 +55,7 @@ public sealed class SummaryPreviewer
         UpdatePreviewPosition(new());
         Previewer.Populate(pk, settings, ctx);
         ShowInactiveTopmost(Previewer);
+        Previewer.Refresh();
     }
 
     private const int SW_SHOWNOACTIVATE = 4;

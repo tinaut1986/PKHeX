@@ -13,10 +13,13 @@ public partial class PokePreview : Form
     private readonly int InitialNameWidth;
 
     private const int interiorMargin = 4; // 2x pixel border on each side
+    private readonly StatRadarChart Chart;
 
     public PokePreview()
     {
         InitializeComponent();
+        Chart = new StatRadarChart { Margin = new Padding(0), Size = new Size(180, 180), Visible = false };
+        FLP_List.Controls.Add(Chart);
         InitialWidth = Width;
         InitialNameWidth = L_Name.Width;
     }
@@ -30,6 +33,7 @@ public partial class PokePreview : Form
 
     public void Populate(PKM pk, in BattleTemplateExportSettings settings, in LegalityLocalizationContext ctx)
     {
+        Chart.SelectedPKM = null;
         int width = PopulateHeader(pk, settings);
         PopulateMoves(pk, ctx.Analysis, settings, ref width);
         PopulateText(pk, ctx, settings, width);
@@ -117,7 +121,22 @@ public partial class PokePreview : Form
         ToggleLabel(L_LinesBeforeMoves, before, hover.PreviewShowPaste, ref width, ref height);
         ToggleLabel(L_HintIllegal, mid, hover.HoverSlotShowLegalityHint, ref width, ref height);
         ToggleLabel(L_LinesAfterMoves, after, hover.HoverSlotShowEncounter, ref width, ref height);
-        Size = new Size(width, height);
+
+        Chart.Visible = pk.Species != 0;
+        if (Chart.Visible)
+        {
+            Chart.Size = new Size(180, 180); // Ensure size is fixed
+            Chart.SelectedPKM = pk;
+            width = Math.Max(width, Chart.Width + Chart.Margin.Horizontal);
+            height += Chart.Height + Chart.Margin.Vertical;
+        }
+
+        Size = new Size(width, height + interiorMargin);
+        
+        // Ensure child controls are laid out so they have correct dimensions for painting
+        FLP_List.PerformLayout();
+        if (Chart.Visible)
+            Chart.Refresh();
     }
 
     private static void ToggleLabel(Control display, string text, bool visible, ref int width, ref int height)
