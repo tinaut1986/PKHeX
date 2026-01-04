@@ -30,22 +30,38 @@ namespace PKHeX.WinForms.Controls
             this.SuspendLayout();
             this.Name = "StatRadarChart";
             this.Size = new System.Drawing.Size(200, 200);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.Chart_Paint);
             this.ResumeLayout(false);
         }
 
-        private void Chart_Paint(object sender, PaintEventArgs e)
+        protected override void OnVisibleChanged(EventArgs e)
         {
-            if (_pkm == null) return;
+            base.OnVisibleChanged(e);
+            if (Visible)
+                Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            if (_pkm == null)
+            {
+                base.OnPaint(e);
+                return;
+            }
+
+            var g = e.Graphics;
+            if (g.VisibleClipBounds.Width <= 0 || g.VisibleClipBounds.Height <= 0)
+                return;
 
             // Ensure party stats are present so we don't display 0s or Level 1 stats for box PKMs
             _pkm.ForcePartyData();
 
-            var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
             var rect = ClientRectangle;
+            if (rect.Width < 10 || rect.Height < 10)
+                return;
+
             var center = new PointF(rect.Width / 2f, rect.Height / 2f);
             var radius = Math.Min(rect.Width, rect.Height) * 0.35f;
 
@@ -100,6 +116,7 @@ namespace PKHeX.WinForms.Controls
             using (var penLive = new Pen(Color.CornflowerBlue, 2f))
                 g.DrawPolygon(penLive, pointsLive);
         }
+
 
         private static void DrawPolygon(Graphics g, PointF center, float radius, int sides, Pen pen)
         {
